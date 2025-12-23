@@ -1,0 +1,6 @@
+[
+  { "name": "예지의 장신구", "slot": "head" },
+  { "name": "경량 장궁", "slot": "arm" },
+  { "name": "섬유 방어구", "slot": "torso" },
+  { "name": "기동 신발", "slot": "legs" }
+]

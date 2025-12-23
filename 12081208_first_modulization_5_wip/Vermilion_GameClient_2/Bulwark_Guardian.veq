@@ -1,0 +1,6 @@
+[
+  { "name": "보호자의 장신구", "slot": "head" },
+  { "name": "수호 대검", "slot": "arm" },
+  { "name": "수호의 방패갑", "slot": "torso" },
+  { "name": "침착 부츠", "slot": "legs" }
+]

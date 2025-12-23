@@ -1,0 +1,6 @@
+[
+  { "name": "철각의 장신구", "slot": "head" },
+  { "name": "돌파의 대검", "slot": "arm" },
+  { "name": "중갑 갑옷", "slot": "torso" },
+  { "name": "전술 장화", "slot": "legs" }
+]
