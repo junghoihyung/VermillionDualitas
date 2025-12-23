@@ -1,0 +1,37 @@
+<!-- Vermilion_CharDB/index.html -->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>VQA: 캐릭터 DB V2 (AI Logic Embedded)</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="list-panel">
+        <h3>📜 캐릭터 DB (V2)</h3>
+        <div id="charList" style="flex:1; overflow-y:auto;"></div>
+
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #555;">
+            <button class="btn save" onclick="exportCharDB()">💾 .vchar 파일 저장</button>
+            <button class="btn" style="width:100%; margin-top:5px;"
+                onclick="document.getElementById('fileIn').click()">📂 불러오기</button>
+            <input type="file" id="fileIn" accept=".vchar,.json" style="display:none" onchange="importCharDB(this)">
+        </div>
+    </div>
+
+    <div class="detail-panel" id="detailPanel">
+        <div style="text-align:center; color:#666; margin-top:100px;">
+            <h2>VQA 캐릭터 데이터베이스</h2>
+            <p>캐릭터를 선택하여 상세 스펙과 <strong>AI 로직</strong>을 확인하세요.</p>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/io.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,412 @@
+<!-- Vermilion_EquipmentCalc/index.html -->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Vermilion: Architect Suite</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/formula.css">
+    <style>
+        /* Lobby Styles */
+        #lobby-screen {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #111;
+            color: #eee;
+        }
+
+        .lobby-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: var(--accent, #f59e0b);
+            font-weight: bold;
+        }
+
+        .lobby-btn-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .lobby-btn {
+            width: 200px;
+            height: 120px;
+            background: #27272a;
+            border: 1px solid #444;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .lobby-btn:hover {
+            background: #3f3f46;
+            border-color: var(--accent, #f59e0b);
+            transform: translateY(-2px);
+        }
+
+        .lobby-btn h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+        }
+
+        .lobby-btn p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        /* App Containers */
+        #equipment-app,
+        #trinket-app {
+            display: none;
+            /* Controlled by Lobby */
+            height: 100vh;
+            width: 100%;
+        }
+
+        /* Trinket Specific overrides */
+        #trinket-app .sidebar {
+            flex: 0 0 320px;
+        }
+
+        /* Same as Eq */
+    </style>
+</head>
+
+<body>
+
+    <div id="tooltip"></div>
+
+    <!-- === LOBBY === -->
+    <div id="lobby-screen">
+        <div class="lobby-title">VERMILION: ARCHITECT SUITE</div>
+        <div class="lobby-btn-row">
+            <div class="lobby-btn" onclick="Lobby.startEquipment()">
+                <h3>⚔️ Equipment</h3>
+                <p>무기 / 방어구 / 신발</p>
+            </div>
+            <div class="lobby-btn" onclick="Lobby.startTrinket()">
+                <h3>🧠 Trinket</h3>
+                <p>장신구 (BQM v5.5)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- === EQUIPMENT CALCULATOR (Original) === -->
+    <div id="equipment-app" class="workspace">
+        <div class="sidebar">
+            <div class="ctrl-group">
+                <h3 style="border:none; margin:0 0 5px 0;">👤 착용 캐릭터 (Persona)</h3>
+                <select id="selChar" onchange="calc()">
+                    <option value="GENERIC">-- 표준 (Generic) --</option>
+                    <option value="FLESH">시체기사 (체력 자원 고효율)</option>
+                    <option value="ALBANUS">알바누스 (방어 시 🎲+1)</option>
+                    <option value="GAIUS">가이우스 (주사위 재굴림)</option>
+                    <option value="HECTOR">헥토르 (깡방어 선호)</option>
+                    <option value="HEGIO">헤기오 (도박/오염 선호)</option>
+                </select>
+            </div>
+
+
+
+            <div class="ctrl-group">
+                <h3>🎯 목표 티어 (Target Tier)</h3>
+                <select id="selTargetTier" onchange="calc()"
+                    style="width:100%; padding:5px; background:#27272a; color:white; border:1px solid #444; border-radius:4px;">
+                    <option value="T6">T6 (12.1 V)</option>
+                    <option value="T5">T5 (17.6 V)</option>
+                    <option value="T4" selected>T4 (26.4 V)</option>
+                    <option value="T3">T3 (35.2 V)</option>
+                    <option value="T2">T2 (Threshold Limit)</option>
+                </select>
+                <div style="font-size:0.75rem; color:#888; margin-top:5px;">
+                    설정된 티어의 원샷 기준(Threshold)을 초과하면<br>
+                    <span style="color:var(--accent)">+1.5 V</span>의 보너스를 얻습니다.
+                </div>
+            </div>
+
+
+            <div>
+                <h3>🎲 주사위 최적화 (S<sub>opt</sub>)</h3>
+                <div style="background:#27272a; padding:10px; border-radius:6px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; align-items:center;">
+                        <span style="color:#aaa">추천 조합:</span>
+                        <span id="dispComp" style="color:var(--accent); font-weight:bold; font-size:1.1rem;">-</span>
+                    </div>
+                    <div style="font-size:0.75rem; color:#666; margin-top:5px; text-align:right;">
+                        * 장비 용량에 맞춰 자동 계산됨
+                    </div>
+                    <!-- Hidden elements for compatibility if any JS still references them (though sim.js was updated) -->
+                    <input type="hidden" id="slCount" value="3">
+                    <input type="hidden" id="slRatio" value="1">
+                    <div id="dispCount" style="display:none">3</div>
+                </div>
+            </div>
+
+            <div>
+                <h3>🛠️ 구성 요소</h3>
+                <label style="color:var(--th-color)">3. 임계값 (Condition)</label>
+                <div class="palette-group" id="pal-th"></div>
+
+                <label style="margin-top:20px; color:var(--eff-color)">2. 일반 효과 / 키워드</label>
+                <div class="palette-group" id="pal-eff"></div>
+
+                <label style="margin-top:20px; color:var(--spec-color)">4. 특수 효과 (Result)</label>
+                <div class="palette-group" id="pal-spec"></div>
+            </div>
+
+            <div class="io-panel">
+                <h3>📂 데이터 관리 (I/O)</h3>
+                <button class="btn file-io" onclick="exportEquipDB()">📤 장비 파일 저장 <span>(.veq)</span></button>
+                <button class="btn file-io" onclick="document.getElementById('importDB').click()">📥 장비 파일 불러오기
+                    <span>(.veq)</span></button>
+                <input type="file" id="importDB" accept=".veq,.json" style="display:none"
+                    onchange="importEquipDB(this)">
+            </div>
+        </div>
+
+        <div class="main">
+            <div style="margin-bottom:10px;">
+                <label>장비 이름 (Name)</label>
+                <input type="text" id="eqName" placeholder="예: 거인의 도끼">
+                <input type="text" id="eqFlavor" placeholder="장비 설명 (Flavor Text)"
+                    style="margin-top:5px; font-size:0.85rem; color:#aaa; border-color:#444; background:#1a1a1a;">
+            </div>
+
+            <div class="slot-selector">
+                <div class="slot-btn active" data-slot="WEP" onclick="setSlot('WEP')">💪 무기 (1.0x)</div>
+                <div class="slot-btn" data-slot="ARM" onclick="setSlot('ARM')">🫀 방어구 (1.2x)</div>
+                <div class="slot-btn" data-slot="BOOT" onclick="setSlot('BOOT')">🦵 신발 (1.0x)</div>
+            </div>
+
+            <div class="equip-card WEP" id="cardUI">
+                <div class="card-section">
+                    <div class="sec-title"><span>1. 용량 (Capacity)</span> <span id="valCap">0V</span></div>
+                    <div class="cap-slots" onclick="cycleCap()">
+                        <div class="cap-slot active"></div>
+                        <div class="cap-slot active"></div>
+                        <div class="cap-slot active"></div>
+                        <div class="cap-slot"></div>
+                        <div class="cap-slot"></div>
+                    </div>
+                    <div style="text-align:center; font-size:0.75rem; color:#666; margin-top:5px;">* 로그 스케일 (2칸:1.0V
+                        ~
+                        5칸:2.8V)</div>
+                </div>
+
+                <div class="card-section">
+                    <div class="sec-title"><span>2. 일반 효과 (Always Active)</span> <span id="valBase">0V</span></div>
+                    <div class="drop-area" id="dropBase"></div>
+                </div>
+
+                <div class="card-section" style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
+                    <div class="sec-title">
+                        <span>3 & 4. 특수 효과 로직 (Condition ➜ Result)</span>
+                        <button onclick="addLogicRow()"
+                            style="background:#333; border:1px solid #555; color:var(--accent); cursor:pointer; font-weight:bold; padding:4px 8px; border-radius:4px;">+
+                            로직 추가</button>
+                    </div>
+                    <div id="logicContainer"
+                        style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; padding-right:5px;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-box">
+                <div class="metric">
+                    <span class="res-label">평균 등급 (EQV)</span>
+                    <span class="res-val" id="resScore">0.0</span>
+                    <span class="res-grade" id="resGrade">T6</span>
+                </div>
+
+                <div class="metric">
+                    <span class="res-label">최대 고점 (MAX)</span>
+                    <div class="res-val-group">
+                        <span class="res-val" id="resMax" style="color:#f59e0b">0.0</span>
+                        <span class="res-denom">/ 12.0</span>
+                    </div>
+                    <span class="res-sub" id="resMaxContext">잠재력 (T6 폐급)</span>
+                </div>
+
+                <div class="metric">
+                    <span class="res-label">안정성 (STB)</span>
+                    <span class="res-val" id="resStb" style="color:#10b981">0%</span>
+                    <span class="res-sub">Activation Rate</span>
+                </div>
+            </div>
+
+            <div id="formulaDisplay" class="formula-bar">
+                <!-- Formula injected here by JS -->
+            </div>
+
+            <div class="bottom-bar">
+                <div
+                    style="display:flex; justify-content:space-between; font-size:0.8rem; color:#888; margin-bottom:5px;">
+                    <span>TIER SCALE (Equipment)</span> <span>ARTIFACT LEVEL (12.0 V+)</span>
+                </div>
+                <div class="tier-track">
+                    <div class="tier-seg t6">T6 폐급</div>
+                    <div class="tier-seg t5">T5 일반</div>
+                    <div class="tier-seg t4">T4 고급</div>
+                    <div class="tier-seg t3">T3 희귀</div>
+                    <div class="tier-seg t2">T2 전설</div>
+                    <div class="tier-seg t1">T1 신화</div>
+                    <div class="tier-marker" id="tierMarker" style="left:0%">
+                        <div class="tier-label" id="tierLabel">0.0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- === TRINKET CALCULATOR (New) === -->
+    <div id="trinket-app" class="workspace">
+        <!-- Trinket Sidebar -->
+        <div class="sidebar">
+            <div class="ctrl-group">
+                <h3>🛠️ 장신구 속성</h3>
+                <label style="color:var(--eff-color)">장신구 효과 (Effect)</label>
+                <div class="palette-group" id="tr-pal-eff"></div>
+            </div>
+
+            <div class="ctrl-group">
+                <h3>🔋 충전 조건 (Recharge)</h3>
+                <div class="palette-group" id="tr-pal-rec"></div>
+            </div>
+
+            <div class="io-panel">
+                <h3>📂 장신구 데이터 (I/O)</h3>
+                <button class="btn file-io" onclick="exportTrinketDB()">📤 장신구 저장 <span>(.veq)</span></button>
+                <button class="btn file-io" onclick="document.getElementById('importTrDB').click()">📥 장신구 불러오기
+                    <span>(.veq)</span></button>
+                <input type="file" id="importTrDB" accept=".veq,.json" style="display:none"
+                    onchange="importTrinketDB(this)">
+            </div>
+        </div>
+
+        <!-- Trinket Main -->
+        <div class="main">
+            <div style="margin-bottom:10px;">
+                <label>장신구 이름 (Name)</label>
+                <input type="text" id="trinketName" placeholder="예: 예지자의 단안경">
+                <input type="text" id="trinketFlavor" placeholder="장신구 설명 (Flavor Text)"
+                    style="margin-top:5px; font-size:0.85rem; color:#aaa; border-color:#444; background:#1a1a1a;">
+            </div>
+
+            <div class="slot-selector">
+                <div class="slot-btn active" style="font-weight:bold; color:var(--accent); border-color:var(--accent);">
+                    🧠 장신구 아키텍트 (Trinket Mode)</div>
+            </div>
+
+            <div class="equip-card ACC" id="trinketUI">
+                <!-- Section 1: Capacity & Effect -->
+                <div class="card-section">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <div>
+                            <div class="sec-title">1. 사용 횟수 (Capacity)</div>
+                            <div id="trCapSlots" class="cap-slots" style="margin-top:5px;">
+                                <!-- Filled by JS -->
+                            </div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="sec-title" style="justify-content:flex-end;">총 가용량</div>
+                            <div id="trCapVal" style="font-size:1.2rem; color:var(--accent); font-weight:bold;">1회</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Effect Drop Zone -->
+                <div class="card-section" style="flex:1; min-height:100px; display:flex; flex-direction:column;">
+                    <div class="sec-title">2. 장신구 효과 (Effect)</div>
+                    <div class="drop-area" id="dropTrinketEff" style="flex:1; overflow-y:auto; height:auto;"></div>
+                </div>
+
+                <!-- Section 3: Recharge Drop Zone -->
+                <div class="card-section">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <div class="sec-title">3. 충전 조건 (Recharge Condition)</div>
+                        <div style="display:flex; align-items:center;">
+                            <label for="chkTrRecharge"
+                                style="margin-right:5px; font-size:0.8rem; color:#888; cursor:pointer;">활성화</label>
+                            <input type="checkbox" id="chkTrRecharge"
+                                onchange="if(typeof toggleTrRecharge === 'function') toggleTrRecharge()" checked>
+                        </div>
+                    </div>
+                    <div class="drop-area" id="dropTrinketRec" style="height:60px;"></div>
+                </div>
+            </div>
+
+            <!-- Result Box -->
+            <div class="result-box">
+                <div class="metric">
+                    <span class="res-label">종합 등급 (Score)</span>
+                    <span class="res-val" id="trResScore">0.0</span>
+                    <span class="res-grade" id="trResGrade">T6</span>
+                </div>
+
+                <div class="metric">
+                    <span class="res-label">회당 가치 (Val/Use)</span>
+                    <span class="res-val" id="trResVal" style="color:#f59e0b">0.0 V</span>
+                </div>
+
+                <div class="metric">
+                    <span class="res-label">유효 사용 횟수 (N_eff)</span>
+                    <span class="res-val" id="trResUses" style="color:#10b981">0.0</span>
+                    <span class="res-sub">Capacity + Recharge</span>
+                </div>
+            </div>
+
+            <div id="trinketFormulaDisplay" class="formula-bar">
+                <!-- Formula injected here by JS -->
+            </div>
+
+            <div class="bottom-bar">
+                <div
+                    style="display:flex; justify-content:space-between; font-size:0.8rem; color:#888; margin-bottom:5px;">
+                    <span>TIER SCALE (Trinket)</span> <span>GOD TIER (20.0 V+)</span>
+                </div>
+                <div class="tier-track">
+                    <div class="tier-seg t6" style="flex:2">T6 폐급</div> <!-- Adjusted widths for Trinket scale -->
+                    <div class="tier-seg t5" style="flex:3">T5 일반</div>
+                    <div class="tier-seg t4" style="flex:5">T4 고급</div>
+                    <div class="tier-seg t3" style="flex:5">T3 희귀</div>
+                    <div class="tier-seg t2" style="flex:5">T2 전설</div>
+                    <div class="tier-seg t1" style="flex:5">T1 신화</div>
+                    <div class="tier-marker" id="trTierMarker" style="left:0%">
+                        <div class="tier-label" id="trTierLabel">0.0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Scripts -->
+    <!-- Original Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/sim.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/io.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- New Scripts (Trinket & Lobby) -->
+    <script src="js/trinket_data.js"></script>
+    <script src="js/trinket_state.js"></script>
+    <script src="js/trinket_calc.js"></script>
+    <script src="js/trinket_ui.js"></script>
+    <script src="js/trinket_io.js"></script>
+
+    <script src="js/lobby.js"></script>
+
+</body>
+
+</html>

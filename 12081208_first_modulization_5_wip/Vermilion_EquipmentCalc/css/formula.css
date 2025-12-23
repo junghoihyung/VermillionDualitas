@@ -1,0 +1,55 @@
+/* Formula Display */
+.formula-bar {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 2px;
+    /* Pull closer to bottom bar */
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    color: #ccc;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-height: 40px;
+    flex-shrink: 0;
+}
+
+.f-term {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    cursor: help;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.f-term:hover {
+    background: #333;
+    color: white;
+}
+
+.f-val {
+    font-weight: bold;
+    color: var(--accent);
+}
+
+.f-sub {
+    font-size: 0.7rem;
+    color: #777;
+    margin-top: -2px;
+}
+
+.f-op {
+    color: #555;
+    font-weight: bold;
+}
+
+.f-desc {
+    display: none;
+    /* Handled by main tooltip */
+}

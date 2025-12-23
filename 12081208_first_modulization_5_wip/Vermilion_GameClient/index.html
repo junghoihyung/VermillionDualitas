@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vermilion: Dualitas Simulator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Google Fonts for premium feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <div id="app-container">
+
+        <!-- LOBBY SCREEN -->
+        <div id="lobby-screen">
+            <h1 class="logo">VERMILION: DUALITAS</h1>
+            <div class="lobby-content">
+                <div class="char-select">
+                    <h2>SELECT CHARACTER</h2>
+                    <div id="char-list">
+                        <!-- Character items injected by JS -->
+                    </div>
+                </div>
+                <div class="equip-select">
+                    <h2>LOADOUT</h2>
+                    <div id="equip-list">
+                        <!-- .veq files injected by JS -->
+                    </div>
+                </div>
+            </div>
+            <button id="start-btn" class="primary-btn">ENTER QUEST</button>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="game-screen" class="hidden">
+
+            <!-- 1. Player Panel (Left Column: x=1) -->
+            <div id="player-panel">
+                <div class="panel-header">
+                    <h2 id="p-name">Character</h2>
+                    <span id="p-class">Class</span>
+                </div>
+                <div class="equipment-slots">
+                    <div class="slot" data-slot="head">
+                        <div class="icon">🧠</div>
+                        <div class="card-preview" id="slot-head">Empty</div>
+                    </div>
+                    <div class="slot" data-slot="arm">
+                        <div class="icon">💪</div>
+                        <div class="card-preview" id="slot-arm">Empty</div>
+                    </div>
+                    <div class="slot" data-slot="torso">
+                        <div class="icon">🫀</div>
+                        <div class="card-preview" id="slot-torso">Empty</div>
+                    </div>
+                    <div class="slot" data-slot="legs">
+                        <div class="icon">🦵</div>
+                        <div class="card-preview" id="slot-legs">Empty</div>
+                    </div>
+                </div>
+                <div class="status-bar">
+                    <div class="hp-container">
+                        <label>HP</label>
+                        <div class="hp-bar-bg">
+                            <div id="p-hp-bar" class="hp-bar-fill" style="width: 100%;"></div>
+                        </div>
+                        <span id="p-hp-text">10/10</span>
+                    </div>
+                    <div class="tokens">
+                        <div class="token threat" title="Threat">💢 <span id="p-threat">0</span></div>
+                        <div class="token suppress" title="Suppression">💤 <span id="p-suppress">0</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Enemy Panel (Right Column: x=5) -->
+            <div id="enemy-panel">
+                <div class="enemy-list-container">
+                    <h3>ENEMIES</h3>
+                    <div id="enemy-list">
+                        <!-- Enemy items injected -->
+                    </div>
+                </div>
+                <div class="action-bar-system">
+                    <div class="bar-segments">
+                        <div class="segment blue" id="enemy-blue">Blue</div>
+                        <div class="segment green" id="enemy-green">Green</div>
+                        <div class="segment red" id="enemy-red">Red</div>
+                        <div class="segment yellow" id="enemy-yellow">!</div>
+                    </div>
+                    <div class="dice-result-display" id="enemy-dice-result">
+                        Sum: -
+                    </div>
+                    <div class="intent-display" id="enemy-intent">
+                        Waiting...
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Top Info Bar (Center Top) -->
+            <div id="top-bar">
+                <div class="game-info">
+                    <span id="map-name">Tutorial Map</span>
+                    <span class="divider">|</span>
+                    <span id="round-counter">Round 1</span>
+                </div>
+                <div class="phase-indicator" id="phase-display">PLAYER TURN</div>
+                <button id="end-turn-btn" class="secondary-btn">END TURN</button>
+            </div>
+
+            <!-- 4. Map Area (Center Middle) -->
+            <div id="map-area">
+                <div id="grid-map">
+                    <!-- 3x3 Grid generated by JS -->
+                </div>
+                <!-- Floating Dice UI (Overlay) -->
+                <div id="dice-overlay" class="hidden">
+                    <div class="dice-container" id="dice-pool">
+                        <!-- Dice elements -->
+                    </div>
+                    <div class="dice-actions">
+                        <button id="roll-btn" class="action-btn">ROLL</button>
+                        <button id="condense-btn" class="utility-btn">💧 Condense</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Hand/Deck Area (Center Bottom) -->
+            <div id="bottom-area">
+                <div class="deck-area" id="deck-pile">
+                    <div class="card-back">DECK <span id="deck-count">10</span></div>
+                </div>
+                <div class="hand-area" id="player-hand">
+                    <!-- Cards injected -->
+                </div>
+                <div class="discard-area" id="discard-pile">
+                    <div class="card-slot">DISCARD</div>
+                </div>
+                <button id="burn-btn" class="utility-btn small">🔥 Burn</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Scripts (Ordered Carefully for Dependency) -->
+    <!-- 1. Data (Global Variables) -->
+    <script src="js/data.js"></script>
+    <!-- 2. Mechanics (Global Functions) -->
+    <script src="js/mechanics.js"></script>
+    <!-- 3. Render (DOM Helpers) -->
+    <script src="js/render.js"></script>
+    <!-- 4. Lobby (Logic) -->
+    <script src="js/lobbymanager.js"></script>
+    <!-- 5. Main (Entry Point) -->
+    <script src="js/main.js"></script>
+</body>
+
+</html>

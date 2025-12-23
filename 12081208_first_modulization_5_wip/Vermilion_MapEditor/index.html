@@ -1,0 +1,190 @@
+<!-- Vermilion_MapEditor/index.html -->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>VQA: 퀘스트 에디터 v5.5 (Undo/Redo & Layer Fix)</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="tab-menu">
+            <button class="tab-btn active" onclick="setTab('map')">🗺️ 맵</button>
+            <button class="tab-btn" onclick="setTab('quest')">📜 퀘스트</button>
+            <button class="tab-btn" onclick="setTab('enemy')">👾 적</button>
+        </div>
+
+        <div id="pnl-map" class="panel-content active">
+            <div class="history-ctrl">
+                <button class="hist-btn" id="btnUndo" onclick="undo()" disabled>↩️ 실행 취소 (Ctrl+Z)</button>
+                <button class="hist-btn" id="btnRedo" onclick="redo()" disabled>↪️ 다시 실행 (Ctrl+Y)</button>
+            </div>
+
+            <h3>맵 크기 (Grid)</h3>
+            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                <div style="flex:1"><label>가로 (W)</label><input type="number" id="mapW" value="10" min="5" max="30">
+                </div>
+                <div style="flex:1"><label>세로 (H)</label><input type="number" id="mapH" value="10" min="5" max="30">
+                </div>
+            </div>
+            <button class="btn btn-load" onclick="createMap(true)">🔄 맵 초기화 (모두 지워짐)</button>
+
+            <h3>지형 브러시</h3>
+            <div class="tool-grid">
+                <div class="tool-btn active" onclick="setTool('tile', 1, this)">
+                    <div class="color-box" style="background:#8b1c1c;"></div> 근육 (비용1)
+                </div>
+                <div class="tool-btn" onclick="setTool('tile', 2, this)">
+                    <div class="color-box" style="background:#e5e5e5;"></div> 뼈 (비용2)
+                </div>
+
+                <div class="tool-btn" onclick="setTool('tile', 3, this)">
+                    <div class="color-box" style="background:#e5e5e5; color:#000; font-weight:bold;">回</div> 소형 뼈 벽
+                </div>
+                <div class="tool-btn" onclick="setTool('tile', 4, this)">
+                    <div class="color-box" style="background:#e5e5e5; color:#000; font-weight:bold;">X</div> 대형 뼈 벽
+                </div>
+
+                <div class="tool-btn" onclick="setTool('tile', 6, this)">
+                    <div class="color-box" style="background:#e5e5e5; color:#000;">▲</div> 뼈 가시 (위험)
+                </div>
+
+                <div class="tool-btn" id="tool-deadtree" style="display:none;" onclick="setTool('tile', 5, this)">
+                    <div class="color-box" style="background:#22c55e;"></div> 폐나무 (1개)
+                </div>
+                <div class="tool-btn" onclick="setTool('erase', null, this)">🌑 지우개 (Void)</div>
+            </div>
+
+            <h3>시작 위치 (Markers)</h3>
+            <div class="tool-grid">
+                <div class="tool-btn" onclick="setTool('marker', 'P1', this)">🅿️ P1 (필수)</div>
+                <div class="tool-btn" onclick="setTool('marker', 'P2', this)">🅿️ P2</div>
+                <div class="tool-btn" onclick="setTool('marker', 'P3', this)">🅿️ P3</div>
+                <div class="tool-btn" onclick="setTool('marker', 'P4', this)">🅿️ P4</div>
+            </div>
+
+            <div class="overlay-ctrl">
+                <label style="color:#f59e0b; margin-top:0;">👁️ 고지대(Vantage) 시각화</label>
+                <div style="display:flex; align-items:center; gap:5px; font-size:0.8rem; color:#aaa; margin-top:5px;">
+                    <span>미리보기 사거리:</span>
+                    <input type="number" id="previewRange" value="3" min="1" max="10" style="width:50px;">
+                </div>
+                <div style="font-size:0.75rem; color:#666; margin-top:5px;">
+                    * 뼈 타일 위에 마우스를 올리면<br>
+                    <span style="color:#3b82f6">■ 기본</span> vs <span style="color:#f59e0b">■ 고지대(+1)</span> 범위를 표시합니다.
+                </div>
+            </div>
+        </div>
+
+        <div id="pnl-quest" class="panel-content">
+            <h3>기본 정보</h3>
+            <label>퀘스트 이름</label>
+            <input type="text" id="qName" value="새로운 퀘스트">
+
+            <label>승리 조건</label>
+            <select id="qType" onchange="updateQuestUI()">
+                <option value="annihilation">⚔️ 섬멸 (Annihilation)</option>
+                <option value="stabilize">💠 안정화 (Stabilization)</option>
+                <option value="escort">🐴 호위 (Escort)</option>
+            </select>
+
+            <label>제한 라운드</label>
+            <input type="number" id="qLimit" value="10">
+
+            <label>초기 위협 보정 (Global Threat)</label>
+            <input type="number" id="qThreat" value="0" placeholder="0">
+
+            <div id="quest-objs" style="margin-top:20px; border-top:1px solid #333; padding-top:10px;">
+                <h3>퀘스트 오브젝트</h3>
+
+                <div id="ui-escort" style="display:none;">
+                    <label style="color:#a78bfa">마차 설정</label>
+                    <div style="display:flex; gap:5px; margin-bottom:5px;">
+                        <div style="flex:1"><label>HP</label><input type="number" id="carriageHP" value="10"></div>
+                    </div>
+                    <div class="tool-btn" onclick="setTool('obj', 'carriage', this)">🐴 마차 배치</div>
+                    <div class="warn-box"
+                        style="display:block; margin-top:5px; border-color:#555; background:#222; color:#aaa;">
+                        * 마차는 라운드 종료 시 폐나무를 향해 이동합니다.<br>
+                        * 맵 탭에서 <b>폐나무</b> 타일을 배치하세요.
+                    </div>
+                </div>
+
+                <div id="ui-stabilize" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <label style="color:#22d3ee; margin:0;">현재 돌파력의 땅:</label>
+                        <strong id="targetCount" style="color:white; font-size:1.2rem;">0 / 4</strong>
+                    </div>
+                    <div class="tool-btn" style="margin-top:5px;" onclick="setTool('obj', 'target', this)">💠 돌파력의 땅 배치
+                    </div>
+                    <div class="warn-box"
+                        style="display:block; margin-top:5px; border-color:#555; background:#222; color:#aaa;">
+                        * 4개의 목표물을 배치해야 합니다.<br>
+                        * 플레이어가 위에서 상호작용하여 정화합니다.
+                    </div>
+                </div>
+
+                <div id="ui-annihilation" style="display:none; color:#666; text-align:center; padding:10px;">
+                    맵의 모든 적을 섬멸하면 승리합니다.
+                </div>
+            </div>
+        </div>
+
+        <div id="pnl-enemy" class="panel-content">
+            <h3>
+                적 데이터 (.ven)
+                <button class="btn-load" style="width:auto; padding:4px 8px; font-size:0.8rem; float:right;"
+                    onclick="document.getElementById('venIn').click()">불러오기</button>
+            </h3>
+            <input type="file" id="venIn" accept=".ven,.json" style="display:none" onchange="loadVenFile(this)">
+
+            <div class="enemy-list" id="enemyList">
+                <div style="padding:10px; color:#666; text-align:center; font-size:0.8rem;">.ven 파일을 로드하세요</div>
+            </div>
+
+            <div class="warn-box" style="display:block; border-color:#444; background:#222; color:#888;">
+                * 배치 후 <b>우클릭</b>하여 등장 인원수(Scaling)를 설정하세요.<br>
+                * .vmp 파일에는 적의 이름(Reference)만 저장됩니다.
+            </div>
+        </div>
+
+        <div style="margin-top:auto; padding:15px; border-top:1px solid #333; background:#111;">
+            <button class="btn btn-save" onclick="saveQuestFile()">💾 퀘스트 저장 (.vmp)</button>
+            <button class="btn btn-load" onclick="document.getElementById('vmpIn').click()">📂 퀘스트 열기</button>
+            <input type="file" id="vmpIn" accept=".vmp,.json" style="display:none" onchange="loadQuestFile(this)">
+        </div>
+    </div>
+
+    <div class="main-canvas" id="canvasContainer">
+        <canvas id="cvs"></canvas>
+        <div style="position:absolute; bottom:10px; right:10px; color:var(--accent); background:rgba(0,0,0,0.8); padding:5px 10px; border-radius:4px; font-size:0.8rem;"
+            id="coords">0, 0</div>
+    </div>
+
+    <div id="contextMenu">
+        <div
+            style="padding:5px; border-bottom:1px solid #444; color:#888; font-size:0.7rem; font-weight:bold; background:#111;">
+            등장 조건 (Scaling)</div>
+        <div class="ctx-item" onclick="setScaling(1)">1인 이상 (기본)</div>
+        <div class="ctx-item" onclick="setScaling(2)">2인 이상</div>
+        <div class="ctx-item" onclick="setScaling(3)">3인 이상</div>
+        <div class="ctx-item" onclick="setScaling(4)">4인 전용</div>
+        <div class="ctx-item" style="color:#ef4444; border-top:1px solid #444;" onclick="deleteEntity()">🗑️ 삭제</div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/state.js"></script>
+    <script src="js/history.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/tools.js"></script>
+    <script src="js/input.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/io.js"></script>
+    <script src="js/main.js"></script>
+
+</body>
+
+</html>

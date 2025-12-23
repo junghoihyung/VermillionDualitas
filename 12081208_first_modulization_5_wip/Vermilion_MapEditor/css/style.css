@@ -1,0 +1,302 @@
+/* Vermilion_MapEditor/css/style.css */
+:root {
+    --bg-dark: #121212;
+    --panel: #1e1e1e;
+    --border: #333;
+    --accent: #10b981;
+    --text: #ececec;
+    --input-bg: #27272a;
+    --void: #000000;
+    --bone-color: #e5e5e5;
+    --muscle-color: #8b1c1c;
+    --range-base: rgba(59, 130, 246, 0.3);
+    --range-bonus: rgba(245, 158, 11, 0.4);
+}
+
+* {
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg-dark);
+    color: var(--text);
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+/* Layout */
+.sidebar {
+    width: 340px;
+    background: #18181b;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.tab-menu {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 10px;
+    background: #222;
+    color: #888;
+    border: none;
+    cursor: pointer;
+    border-right: 1px solid #333;
+    transition: 0.2s;
+}
+
+.tab-btn:hover {
+    background: #333;
+    color: white;
+}
+
+.tab-btn.active {
+    background: var(--panel);
+    color: var(--accent);
+    font-weight: bold;
+    border-bottom: 2px solid var(--accent);
+}
+
+.panel-content {
+    padding: 15px;
+    overflow-y: auto;
+    flex: 1;
+    display: none;
+}
+
+.panel-content.active {
+    display: block;
+}
+
+.main-canvas {
+    flex: 1;
+    background: #050505;
+    position: relative;
+    overflow: hidden;
+    cursor: grab;
+    background-image: radial-gradient(#222 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.main-canvas:active {
+    cursor: grabbing;
+}
+
+/* Controls */
+h3 {
+    margin: 0 0 10px 0;
+    color: var(--accent);
+    font-size: 0.9rem;
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+label {
+    font-size: 0.8rem;
+    color: #aaa;
+    display: block;
+    margin-bottom: 3px;
+    margin-top: 8px;
+}
+
+input,
+select {
+    background: var(--input-bg);
+    border: 1px solid #444;
+    color: white;
+    padding: 6px;
+    width: 100%;
+    border-radius: 4px;
+}
+
+.tool-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+}
+
+.tool-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    background: #27272a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: 0.1s;
+}
+
+.tool-btn:hover {
+    background: #333;
+    border-color: #666;
+}
+
+.tool-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: #2a3330;
+    font-weight: bold;
+}
+
+/* Tool Colors Preview */
+.color-box {
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    display: grid;
+    place-items: center;
+    font-size: 10px;
+    line-height: 1;
+}
+
+.enemy-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    border: 1px solid #333;
+    border-radius: 4px;
+}
+
+.enemy-item {
+    padding: 8px;
+    border-bottom: 1px solid #333;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+
+.enemy-item:hover {
+    background: #333;
+}
+
+.enemy-item.active {
+    background: #3f1818;
+    color: #fca5a5;
+    border-left: 3px solid #ef4444;
+}
+
+/* Context Menu */
+#contextMenu {
+    position: absolute;
+    background: #222;
+    border: 1px solid var(--accent);
+    padding: 5px;
+    z-index: 100;
+    display: none;
+    width: 150px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+    border-radius: 4px;
+}
+
+.ctx-item {
+    padding: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: 0.1s;
+    border-radius: 2px;
+}
+
+.ctx-item:hover {
+    background: var(--accent);
+    color: black;
+}
+
+.btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 5px;
+    transition: 0.2s;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}
+
+.btn-save {
+    background: var(--accent);
+    color: black;
+}
+
+.btn-load {
+    background: #333;
+    color: white;
+    border: 1px solid #555;
+}
+
+.warn-box {
+    background: #451a1a;
+    color: #fca5a5;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-top: 10px;
+    display: none;
+    border: 1px solid #ef4444;
+}
+
+.info-box {
+    background: #1a3045;
+    color: #7dd3fc;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-top: 10px;
+    border: 1px solid #0ea5e9;
+}
+
+/* Overlay Control */
+.overlay-ctrl {
+    margin-top: 15px;
+    padding: 10px;
+    background: #111;
+    border: 1px dashed #444;
+    border-radius: 4px;
+}
+
+/* History Controls */
+.history-ctrl {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.hist-btn {
+    flex: 1;
+    padding: 6px;
+    background: #333;
+    border: 1px solid #555;
+    color: #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.hist-btn:hover {
+    background: #444;
+    color: white;
+}
+
+.hist-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}

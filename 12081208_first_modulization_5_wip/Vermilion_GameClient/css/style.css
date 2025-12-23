@@ -1,0 +1,477 @@
+:root {
+    --bg-color: #0d0d10;
+    --panel-color: #1a1a20;
+    --accent-blue: #4da6ff;
+    --accent-red: #ff4d4d;
+    --accent-green: #4dff88;
+    --text-color: #e0e0e0;
+    --card-width: 80px;
+    --card-height: 110px;
+    --grid-gap: 8px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text-color);
+    overflow: hidden;
+}
+
+#app-container {
+    aspect-ratio: 16/9;
+    width: 100%;
+    max-height: 100vh;
+    background-color: var(--bg-color);
+    position: relative;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+/* LOBBY SCREEN */
+#lobby-screen {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #111 0%, #050505 100%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#lobby-screen.hidden,
+#game-screen.hidden {
+    display: none;
+}
+
+.logo {
+    font-size: 4rem;
+    font-weight: 700;
+    letter-spacing: 0.5rem;
+    color: var(--accent-red);
+    text-shadow: 0 0 20px rgba(255, 77, 77, 0.5);
+    margin-bottom: 3rem;
+    animation: pulse 3s infinite ease-in-out;
+}
+
+.lobby-content {
+    display: flex;
+    gap: 4rem;
+    margin-bottom: 3rem;
+}
+
+.char-select,
+.equip-select {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 300px;
+    height: 50vh;
+    /* Fixed height relative to viewport */
+    max-height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+#char-list,
+#equip-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 1rem;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+.primary-btn {
+    padding: 1rem 3rem;
+    font-size: 1.5rem;
+    background: var(--accent-red);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.primary-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 77, 77, 0.6);
+}
+
+/* GAME SCREEN - GRID LAYOUT */
+#game-screen {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: var(--grid-gap);
+    padding: var(--grid-gap);
+    box-sizing: border-box;
+}
+
+/* 1. Player Panel (Left Column) */
+#player-panel {
+    grid-column: 1 / 2;
+    grid-row: 1 / 6;
+    background: var(--panel-color);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid rgba(255, 255, 255, 0.05);
+}
+
+.panel-header h2 {
+    margin: 0;
+    color: var(--accent-blue);
+}
+
+#p-class {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.equipment-slots {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.slot {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.3s;
+}
+
+.slot:hover {
+    border-color: var(--accent-blue);
+}
+
+.status-bar {
+    margin-top: auto;
+}
+
+.hp-bar-bg {
+    width: 100%;
+    height: 20px;
+    background: #333;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 0.5rem 0;
+}
+
+.hp-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff4d4d, #ff9999);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tokens {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.token {
+    font-size: 1.2rem;
+}
+
+/* 2. Enemy Panel (Right Column) */
+#enemy-panel {
+    grid-column: 5 / 6;
+    grid-row: 1 / 6;
+    background: var(--panel-color);
+    padding: 1rem;
+    border-left: 2px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.enemy-list-container {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+.action-bar-system {
+    margin-top: auto;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.bar-segments {
+    display: flex;
+    height: 10px;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.segment {
+    flex: 1;
+    text-align: center;
+    font-size: 0;
+    transition: opacity 0.3s;
+    opacity: 0.3;
+}
+
+.segment.active {
+    opacity: 1;
+    box-shadow: 0 0 10px currentColor;
+}
+
+.segment.blue {
+    background-color: #4da6ff;
+}
+
+.segment.green {
+    background-color: #4dff88;
+}
+
+.segment.red {
+    background-color: #ff4d4d;
+}
+
+.segment.yellow {
+    background-color: #ffcc00;
+}
+
+/* 3. Top Bar */
+#top-bar {
+    grid-column: 2 / 5;
+    grid-row: 1 / 2;
+    /* CSS Row 1 is Top in Grid, but logic says y=5 is top. */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 2rem;
+    background: rgba(0, 0, 0, 0.8);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+.game-info {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.phase-indicator {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    text-shadow: 0 0 10px rgba(77, 166, 255, 0.5);
+}
+
+/* 4. Map Area */
+#map-area {
+    grid-column: 2 / 5;
+    grid-row: 2 / 5;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #15151a;
+    border-radius: 12px;
+    overflow: hidden;
+    /* Cartesian transform simulation? No, just render grids correctly. */
+}
+
+#grid-map {
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 10px;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transform: rotateX(20deg);
+    /* Slight 3D Tilt for Board Game feel */
+}
+
+.map-tile {
+    width: 100px;
+    height: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    position: relative;
+    border-radius: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.tile-muscle {
+    background: repeating-linear-gradient(45deg, #300, #300 10px, #400 10px, #400 20px);
+    border: 2px solid #600;
+}
+
+.tile-bone {
+    background: repeating-linear-gradient(45deg, #333, #333 10px, #444 10px, #444 20px);
+    border: 2px solid #888;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.map-tile.highlight-move {
+    box-shadow: 0 0 20px var(--accent-green);
+    border-color: var(--accent-green);
+}
+
+.map-tile.highlight-attack {
+    box-shadow: 0 0 20px var(--accent-red);
+    border-color: var(--accent-red);
+}
+
+.unit {
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    text-shadow: 0 5px 10px rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.unit.shake {
+    animation: shake 0.5s;
+}
+
+/* 5. Bottom Area (Hand) */
+#bottom-area {
+    grid-column: 2 / 5;
+    grid-row: 5 / 6;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 30px;
+    gap: 2rem;
+}
+
+.card {
+    width: var(--card-width);
+    height: var(--card-height);
+    background: #fff;
+    color: #000;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    user-select: none;
+}
+
+.card:hover {
+    transform: translateY(-20px) scale(1.1);
+    z-index: 10;
+}
+
+.card.burning {
+    animation: burn 0.5s forwards;
+}
+
+.card-type {
+    font-size: 0.8rem;
+    color: #555;
+}
+
+.card-name {
+    font-size: 1rem;
+    text-align: center;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+
+    100% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+}
+
+@keyframes shake {
+    0% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-5px) rotate(-5deg);
+        filter: hue-rotate(90deg);
+    }
+
+    75% {
+        transform: translateX(5px) rotate(5deg);
+    }
+
+    100% {
+        transform: translateX(0);
+    }
+}
+
+@keyframes burn {
+    0% {
+        filter: sepia(0);
+        opacity: 1;
+    }
+
+    50% {
+        filter: sepia(1) hue-rotate(-50deg) saturate(5);
+        transform: scale(0.8);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0) translateY(-50px);
+    }
+}
+
+.hidden {
+    display: none !important;
+}

@@ -1,0 +1,163 @@
+<!-- Vermilion_EnemyCalc/index.html -->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>BQM v7.8: 적 위협도 계산기 (Dynamic Context)</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../Vermilion_EquipmentCalc/css/formula.css">
+</head>
+
+<body>
+    <div id="global-tooltip"></div>
+    <div class="workspace">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="palette-section">
+                <h3>🛠️ 팔레트</h3>
+                <label>기본 행동</label>
+                <div class="palette-grid" id="pal-act"></div>
+                <label style="margin-top:10px;">키워드 (Enemy/Shared)</label>
+                <div class="palette-grid" id="pal-key"></div>
+                <label style="margin-top:10px;">패시브 (Enemy)</label>
+                <div class="palette-grid" id="pal-pas"></div>
+                <label style="margin-top:10px; color:#d946ef;">우선순위 (Target Priority)</label>
+                <div class="palette-grid" id="pal-prio"></div>
+            </div>
+            <div>
+                <h3>🎲 주사위 엔진</h3>
+                <div style="background:#27272a; padding:10px; border-radius:6px;">
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:5px;">
+                        <span>총 개수: <strong id="dispCount" style="color:var(--accent)">3</strong></span>
+                        <span id="dispComp" style="color:#aaa">⬜2 : 🟥1</span>
+                    </div>
+                    <input type="range" id="slCount" min="2" max="5" value="3">
+                    <input type="range" id="slRatio" min="0" max="3" value="1" style="margin-top:10px;">
+                </div>
+            </div>
+            <div class="io-panel">
+                <h3>📂 데이터 관리 (Only .ven)</h3>
+                <div style="font-size:0.8rem; color:#aaa; margin-bottom:5px;">대기 중 목록: <strong id="savedCount"
+                        style="color:white">0</strong>명</div>
+                <div id="dbList"
+                    style="max-height:100px; overflow-y:auto; background:#111; margin-bottom:10px; border:1px solid #333; border-radius:4px;">
+                </div>
+                <button class="btn file-io" onclick="exportEnemyDB()">💾 .ven 파일로 저장</button>
+                <button class="btn file-io" onclick="document.getElementById('importDB').click()">📂 .ven 파일
+                    불러오기</button>
+                <input type="file" id="importDB" accept=".ven,.json" style="display:none"
+                    onchange="importEnemyDB(this)">
+            </div>
+        </div>
+        <!-- Main Panel -->
+        <div class="main-panel">
+            <div class="status-header">
+                <div class="stat-row">
+                    <div style="display:flex; gap:20px;">
+                        <div><label>HP</label><input type="number" id="inpHP" value="10"></div>
+                        <div><label>DEF</label><input type="number" id="inpDEF" value="1"></div>
+                        <div style="border-left:1px solid #444; padding-left:20px;"><label>방어 가치 (DV)</label><strong
+                                id="dispDV" style="font-size:1.2rem;">0.00 V</strong></div>
+                    </div>
+                    <div class="ctx-box">
+                        <span style="font-size:1.2rem;">⚔️</span>
+                        <div><label style="margin:0; color:#fca5a5;">전투 상황 (Context)</label>
+                            <div style="display:flex; align-items:center; gap:5px; margin-top:3px;">
+                                <span style="font-size:0.8rem;">아군 사망:</span>
+                                <input type="number" id="ctxDead" value="0" min="0"
+                                    style="width:40px; background:#111; border-color:#ef4444;" oninput="calc()">
+                            </div>
+                            <div style="display:flex; align-items:center; gap:5px; margin-top:3px;">
+                                <span style="font-size:0.8rem;">💀위협:</span>
+                                <input type="number" id="ctxThreat" value="0" min="0"
+                                    style="width:40px; background:#111; border-color:#fca5a5;" oninput="calc()">
+                                <span style="font-size:0.8rem;">💎억제:</span>
+                                <input type="number" id="ctxSuppress" value="0" min="0"
+                                    style="width:40px; background:#111; border-color:#93c5fd;" oninput="calc()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stat-row" style="margin-top:10px; border-top:1px solid #333; padding-top:10px;">
+                    <div class="save-controls">
+                        <div><label>적 이름 (Name)</label><input type="text" id="enemyName" placeholder="예: 퀴노돈">
+                            <input type="text" id="enemyFlavor" placeholder="적 설명 (Flavor Text)"
+                                style="margin-top:5px; width:100%; font-size:0.8rem; color:#aaa; border:1px solid #444; background:#1a1a1a; padding:4px;">
+                        </div>
+                        <div><label>&nbsp;</label> <button class="btn save" onclick="addToRamList()">➕ 리스트에 추가</button>
+                        </div>
+                    </div>
+                    <div><label style="text-align:right">최종 위협도 (ETV)</label>
+                        <div id="bigETV" class="big-etv">0.0 V</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formula Display (BQM 1.2) -->
+            <div id="formulaDisplay" class="formula-bar" style="margin-bottom:15px; border-color:#d946ef;">
+                <!-- Formula injected here by calc.js -->
+            </div>
+
+            <!-- Priority Panel -->
+            <div class="status-header" style="margin-top:0px; border-color:#d946ef;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 style="color:#d946ef; margin:0;">🎯 공격 대상 우선순위 (Targeting Logic)</h3>
+                    <button id="btnTogglePrio" class="btn active" onclick="togglePrioMode()" style="min-width:140px;">🛑
+                        기본값 사용</button>
+                </div>
+                <!-- Default disabled -->
+                <div id="prioContainer" class="drop-area disabled" style="min-height:80px; margin-top:10px;"></div>
+                <div style="font-size:0.75rem; color:#888; margin-top:5px;">* 이 토글을 켜면, 기본 우선순위 대신 위 리스트의 <b
+                        style="color:#d946ef">순서대로</b> 대상을 탐색합니다. (드래그하여 정렬)</div>
+            </div>
+
+            <div style="background:var(--bg-panel); padding:15px; border-radius:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <h3>📊 확률 그래프 및 행동 구간</h3>
+                    <button id="btnAddYellow" class="btn" onclick="toggleAddMode()">+ 특수 행동(노랑) 추가</button>
+                </div>
+                <div class="graph-wrapper" id="graphWrap">
+                    <svg class="graph-svg" id="graphSvg"></svg>
+                    <div class="graph-points" id="graphPoints"></div>
+                    <div class="prob-slider-container">
+                        <div class="zone b" id="zoneB"></div>
+                        <div class="zone g" id="zoneG"></div>
+                        <div class="zone r" id="zoneR"></div>
+                        <div class="slider-handle" id="h1" style="left:30%"></div>
+                        <div class="slider-handle" id="h2" style="left:70%"></div>
+                    </div>
+                </div>
+                <div
+                    style="display:flex; justify-content:space-between; font-size:0.85rem; margin-top:5px; color:#aaa;">
+                    <span id="probInfo">그래프의 점을 클릭하여 노랑 행동(특수)을 추가/삭제하세요.</span><span id="distInfo">Max: 12</span>
+                </div>
+            </div>
+            <div class="zones-container" id="zonesContainer"></div>
+        </div>
+    </div>
+    <div class="bottom-bar">
+        <div class="tier-track">
+            <div class="tier-seg t6">T6 - 잡몹</div>
+            <div class="tier-seg t5">T5 - 정예</div>
+            <div class="tier-seg t4">T4 - 중보</div>
+            <div class="tier-seg t3">T3 - 위협</div>
+            <div class="tier-seg t2">T2 - 재앙</div>
+            <div class="tier-seg t1">T1 - 보스</div>
+            <div class="tier-marker" id="tierMarker" style="left:0%">
+                <div class="tier-label" id="tierLabel">0.0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logic Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/render.js"></script>
+    <script src="js/calc.js"></script>
+    <script src="js/io.js"></script>
+    <script src="js/main.js"></script>
+</body>
+
+</html>

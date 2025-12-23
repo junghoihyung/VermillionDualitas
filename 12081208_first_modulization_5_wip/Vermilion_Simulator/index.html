@@ -1,0 +1,64 @@
+<!-- Vermilion_Simulator/index.html -->
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>VQA: Cortex v12.0 Integrated Simulator (AAA Engine)</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <div class="sidebar">
+        <div class="header">
+            <h2 style="margin:0; color:var(--accent);">Cortex v12.0 <small style="color:#666; font-size:0.6em;">FULL
+                    LOGIC</small></h2>
+            <div style="font-size:0.7rem; color:#888; margin-top:5px;">
+                Real Combat • Dice Physics • Summation AI<br>
+                <span style="color:var(--warn);">* NO MOCKS ALLOWED</span>
+            </div>
+            <input type="file" id="inFiles" multiple style="display:none" onchange="Loader.handleFiles(this)">
+            <button onclick="document.getElementById('inFiles').click()" class="btn"
+                style="width:100%; margin-top:10px;">📂 데이터 로드 (All-in-One)</button>
+        </div>
+        <div class="log-area" id="gameLog"></div>
+        <div class="ctrl-panel">
+            <div style="display:flex; gap:5px;">
+                <button onclick="Engine.toggleAuto()" class="btn" style="flex:1;" id="btnAuto">🤖 AUTO OFF</button>
+                <button onclick="Engine.next()" class="btn primary" style="flex:1;">▶ NEXT STEP</button>
+            </div>
+            <div style="display:flex; gap:5px; font-size:0.7rem; color:#666;">
+                <label><input type="checkbox" id="chkHeat" onchange="Renderer.draw()"> Heatmap</label>
+                <label><input type="checkbox" id="chkMCTS" checked> MCTS-Vis</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-view">
+        <div class="grid-layer" id="gridLayer"></div>
+        <canvas class="debug-layer" id="debugCanvas"></canvas>
+    </div>
+
+    <!-- Scripts Order Matters -->
+    <script src="js/config.js"></script> <!-- Rules, DB -->
+    <script src="js/utils.js"></script>
+    <!-- Logger, Loader, VirtualWorld dependencies? Wait, VirtualWorld needs Dice -->
+    <!-- Circular dependency check: Utils contains Logger (independent), Loader (independent), VirtualWorld (needs DiceSystem) -->
+    <!-- So Dice must be loaded BEFORE Utils? Or Utils split? -->
+    <!-- VirtualWorld in utils.js uses DiceSystem.getExpected. DiceSystem is in dice.js. So dice.js FIRST. -->
+
+    <script src="js/dice.js"></script> <!-- DiceSystem -->
+    <script src="js/utils.js"></script> <!-- Logger, Loader, VirtualWorld (now safe) -->
+    <script src="js/state.js"></script> <!-- State -->
+    <script src="js/physics.js"></script> <!-- Physics, TrapSystem -->
+    <script src="js/systems.js"></script> <!-- Corruption, Loot, etc -->
+    <script src="js/combat.js"></script> <!-- CombatEngine, KeywordSystem, Equipment, CustomCardLogic -->
+    <script src="js/ai.js"></script> <!-- EnemyBrain, SquadAI, MCTSNode, PersonaSystem -->
+    <script src="js/renderer.js"></script> <!-- Renderer -->
+    <script src="js/engine.js"></script> <!-- Engine -->
+    <script src="js/main.js"></script> <!-- Bootstrapper -->
+
+</body>
+
+</html>
